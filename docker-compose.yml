@@ -1,0 +1,31 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: expenses
+      POSTGRES_USER: expenses
+      POSTGRES_PASSWORD: expenses
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U expenses -d expenses"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  app:
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      # Generate your own with: openssl rand -base64 48
+      JWT_SECRET: ${JWT_SECRET:-JuJsbVDT4qsrYYJC4G3b9zqBNDtbWysPcJ1438kweyY4tpXKURnqSykoj7H3HYFX}
+    ports:
+      - "8080:8080"
+
+volumes:
+  pg-data:
